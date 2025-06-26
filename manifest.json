@@ -1,0 +1,11 @@
+{
+  "name": "proofofreserves",
+  "binaryPath": "./target/riscv-guest/riscv32im-risc0-zkvm-elf/docker/proofofreserves/proofofreserves",
+  "imageId": "574feec920a0d801f8a33bc5b47001c019837586843a411a79642b8945acebbe",
+  "inputOrder": [
+    "Public",
+    "Private"
+  ],
+  "signature": "61NyabUSYguL2atTWTMi3TQjwHwBBfCTYPenhHknK7QTA4FhhHgfHNX96zokYKcTnXmFxGdhiYsHAiSHr4hgANgi",
+  "size": 294908
+}
