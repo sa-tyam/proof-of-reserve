@@ -3,11 +3,16 @@ use risc0_zkvm::{
     sha::Sha256,
 };
 
+fn read_u64_input() -> u64 {
+    let mut input_bytes = [0u8; 8];
+    env::read_slice(&mut input_bytes);
+    u64::from_le_bytes(input_bytes)
+}
+
 fn main() {
     // Read public input (JSON)
-    let mut public_hex_bytes = Vec::new();
-    env::read_slice(&mut public_hex_bytes);
-    let public_json_hex = String::from_utf8(public_hex_bytes).unwrap();
+    let total_supply = read_u64_input();  // First 8 bytes
+    let timestamp = read_u64_input();  // next 8 bytes
 
     // Read private input
     // Currently we do not use the private input in this example,
@@ -16,9 +21,6 @@ fn main() {
     let mut private_hex_bytes = Vec::new();
     env::read_slice(&mut private_hex_bytes);
     let private_json_hex = String::from_utf8(private_hex_bytes).unwrap();
-
-    let total_supply = gjson::get(&public_json_hex, "total_supply").u64();
-    let timestamp = gjson::get(&public_json_hex, "timestamp").u64();
 
     // Ideally the following values would be fetched from a database or another source.
     // For this example, we will use hardcoded values.
@@ -66,18 +68,22 @@ fn main() {
     }
     reserve_breakdown.push(']');
 
-    let digest = Impl::hash_bytes(&[public_json_hex.as_bytes(), private_json_hex.as_bytes()].concat());
+    let digest =
+        Impl::hash_bytes(&[private_json_hex.as_bytes()].concat());
     let hash_hex = hex::encode(digest.as_bytes());
 
-     // Build final proof JSON
+    // Build final proof JSON
     let proof_json = format!(
         "{{\"total_reserves_usd\":{},\"total_supply\":{},\"collateralization_ratio\":{},\
           \"timestamp\":{},\"reserve_breakdown\":{},\"data_hash\":\"{}\"}}",
-        total_reserves_usd, total_supply, collateralization_ratio, timestamp, reserve_breakdown, hash_hex
+        total_reserves_usd,
+        total_supply,
+        collateralization_ratio,
+        timestamp,
+        reserve_breakdown,
+        hash_hex
     );
 
-    // Create and commit hash of all inputs
-    env::commit_slice(proof_json.as_bytes());
     env::commit_slice(digest.as_bytes());
-    env::commit_slice(&collateralization_ratio.to_le_bytes());
+    env::commit_slice(proof_json.as_bytes());
 }
